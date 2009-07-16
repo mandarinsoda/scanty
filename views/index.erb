@@ -9,15 +9,15 @@
 <div id="header">
 	<div id="logo">
 		<h1><a href="/"><%= Blog.title %></a></h1>
-		<p>by <%= Blog.author %></p>
+		<p>from <%= Blog.author %></p>
 	</div>
 </div>
 
 <div id="content">
 	<% posts.each do |post| %>
 	<div class="post">
-		<p class="date"><%= post[:created_at].strftime("%b") %><b><%= post[:created_at].strftime("%d") %></b></p>
-		<h2 class="title"><a href="<%= post.url %>"><%= post[:title] %></a></h2>
+		<p class="date"><%= post.created_at.strftime("%b") %><b><%= post.created_at.strftime("%d") %></b></p>
+		<h2 class="title"><a href="<%= post.url %>"><%= post.title %></a></h2>
 		<p class="meta"><small>
 			<%= post.linked_tags %>
 			<% if Blog.disqus_shortname %>

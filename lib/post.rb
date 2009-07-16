@@ -3,19 +3,30 @@ require File.dirname(__FILE__) + '/../vendor/maruku/maruku'
 $LOAD_PATH.unshift File.dirname(__FILE__) + '/../vendor/syntax'
 require 'syntax/convertors/html'
 
-class Post < Sequel::Model
-	unless table_exists?
-		set_schema do
-			primary_key :id
-			text :title
-			text :body
-			text :slug
-			text :tags
-			timestamp :created_at
-		end
-		create_table
-	end
-
+class Post 
+  include DataMapper::Resource
+  # The Serial type provides auto-incrementing primary keys
+  property :id,         Serial
+  # ...or pass a :key option for a user-set key like the name of a user:
+  property :slug,       String
+ 
+  property :title,      String
+  property :body,       Text
+  property :tags,       Text
+  property :created_at, DateTime
+ 
+	# unless table_exists?
+	#    set_schema do
+	#      primary_key :id
+	#      text :title
+	#      text :body
+	#      text :slug
+	#      text :tags
+	#      timestamp :created_at
+	#    end
+	#    create_table
+	#  end
+	DataMapper.auto_upgrade!
 	def url
 		d = created_at
 		"/past/#{d.year}/#{d.month}/#{d.day}/#{slug}/"

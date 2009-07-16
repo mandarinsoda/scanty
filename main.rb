@@ -1,22 +1,27 @@
 require 'rubygems'
 require 'sinatra'
+require 'dm-core'
+require 'dm-timestamps'
 
-$LOAD_PATH.unshift File.dirname(__FILE__) + '/vendor/sequel'
-require 'sequel'
+#$LOAD_PATH.unshift File.dirname(__FILE__) + '/vendor/sequel'
+#require 'sequel'
 
 configure do
-	Sequel.connect(ENV['DATABASE_URL'] || 'sqlite://blog.db')
-
+	#Sequel.connect(ENV['DATABASE_URL'] || 'sqlite://blog.db')
+  DataMapper.setup(:default, "sqlite3://blog.db'")
+  DataMapper.auto_upgrade!
 	require 'ostruct'
 	Blog = OpenStruct.new(
-		:title => 'a scanty blog',
-		:author => 'John Doe',
+		:title => 'ruby soda blogworks',
+		:author => 'the folks at for44',
 		:url_base => 'http://localhost:4567/',
-		:admin_password => 'changeme',
-		:admin_cookie_key => 'scanty_admin',
-		:admin_cookie_value => '51d6d976913ace58',
+		:admin_password => 'rockst4r',
+		:admin_cookie_key => 'for44_cookie_monster',
+		:admin_cookie_value => '9797869476169',
 		:disqus_shortname => nil
 	)
+
+  
 end
 
 error do
@@ -44,12 +49,12 @@ layout 'layout'
 ### Public
 
 get '/' do
-	posts = Post.reverse_order(:created_at).limit(10)
+	posts = Post.all#reverse_order(:created_at).limit(10)
 	erb :index, :locals => { :posts => posts }, :layout => false
 end
 
 get '/past/:year/:month/:day/:slug/' do
-	post = Post.filter(:slug => params[:slug]).first
+	post = Post.all(:slug => params[:slug]).first
 	stop [ 404, "Page not found" ] unless post
 	@title = post.title
 	erb :post, :locals => { :post => post }
@@ -67,7 +72,7 @@ end
 
 get '/past/tags/:tag' do
 	tag = params[:tag]
-	posts = Post.filter(:tags.like("%#{tag}%")).reverse_order(:created_at).limit(30)
+	posts = Post.all(:tags.like("%#{tag}%")).reverse_order(:created_at).limit(30)
 	@title = "Posts tagged #{tag}"
 	erb :tagged, :locals => { :posts => posts, :tag => tag }
 end
@@ -89,7 +94,7 @@ get '/auth' do
 end
 
 post '/auth' do
-	set_cookie(Blog.admin_cookie_key, Blog.admin_cookie_value) if params[:password] == Blog.admin_password
+	response.set_cookie(Blog.admin_cookie_key, Blog.admin_cookie_value) if params[:password] == Blog.admin_password
 	redirect '/'
 end
 
@@ -107,14 +112,14 @@ end
 
 get '/past/:year/:month/:day/:slug/edit' do
 	auth
-	post = Post.filter(:slug => params[:slug]).first
+	post = Post.all(:slug => params[:slug]).first
 	stop [ 404, "Page not found" ] unless post
 	erb :edit, :locals => { :post => post, :url => post.url }
 end
 
 post '/past/:year/:month/:day/:slug/' do
 	auth
-	post = Post.filter(:slug => params[:slug]).first
+	post = Post.all(:slug => params[:slug]).first
 	stop [ 404, "Page not found" ] unless post
 	post.title = params[:title]
 	post.tags = params[:tags]

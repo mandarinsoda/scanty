@@ -9,7 +9,8 @@ require 'dm-timestamps'
 configure do
 	#Sequel.connect(ENV['DATABASE_URL'] || 'sqlite://blog.db')
   DataMapper.setup(:default, "sqlite3://blog.db'")
-  DataMapper.auto_upgrade!
+  DataMapper::Logger.new(STDOUT, :error)
+  
 	require 'ostruct'
 	Blog = OpenStruct.new(
 		:title => 'ruby soda blogworks',
@@ -49,7 +50,7 @@ layout 'layout'
 ### Public
 
 get '/' do
-	posts = Post.all#reverse_order(:created_at).limit(10)
+	posts = Post.all(:limit => 10, :order => [:created_at.desc])
 	erb :index, :locals => { :posts => posts }, :layout => false
 end
 
@@ -65,20 +66,20 @@ get '/past/:year/:month/:day/:slug' do
 end
 
 get '/past' do
-	posts = Post.reverse_order(:created_at)
+	posts = Post.all(:order => [:created_at.desc])
 	@title = "Archive"
 	erb :archive, :locals => { :posts => posts }
 end
 
 get '/past/tags/:tag' do
 	tag = params[:tag]
-	posts = Post.all(:tags.like("%#{tag}%")).reverse_order(:created_at).limit(30)
+	posts = Post.all(:tags.like("%#{tag}%"), :limit => 30, :order => [:created_at.desc])
 	@title = "Posts tagged #{tag}"
 	erb :tagged, :locals => { :posts => posts, :tag => tag }
 end
 
 get '/feed' do
-	@posts = Post.reverse_order(:created_at).limit(10)
+	@posts = Post.all(:limit => 10, :order => [:created_at.desc])
 	content_type 'application/atom+xml', :charset => 'utf-8'
 	builder :feed
 end
@@ -112,14 +113,14 @@ end
 
 get '/past/:year/:month/:day/:slug/edit' do
 	auth
-	post = Post.all(:slug => params[:slug]).first
+	post = Post.first(:slug => params[:slug])
 	stop [ 404, "Page not found" ] unless post
 	erb :edit, :locals => { :post => post, :url => post.url }
 end
 
 post '/past/:year/:month/:day/:slug/' do
 	auth
-	post = Post.all(:slug => params[:slug]).first
+	post = Post.first(:slug => params[:slug])
 	stop [ 404, "Page not found" ] unless post
 	post.title = params[:title]
 	post.tags = params[:tags]

@@ -17,13 +17,13 @@ the starting point for your blog, too.
 * Atom feed
 * Comments via Disqus
 * Web framework = Sinatra
-* ORM = Sequel
+* ORM = DataMapper (also Google App Engine Compatible)
 
 == Dependencies
 
   $ gem install sinatra
 
-Sequel, Maruku, and Syntax are all vendored.
+Data Mapper, Maruku, and Syntax are all vendored.
 
 == Setup
 
